@@ -38,6 +38,10 @@ enum LineType
     HR,
     /** Start of a XML block. */
     XML,
+    /** A table header. */
+    THEAD,
+    /** A table row. */
+    TROW,
     /** Fenced code block start/end */
     FENCED_CODE
 }

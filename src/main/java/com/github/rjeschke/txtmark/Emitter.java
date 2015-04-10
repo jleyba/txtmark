@@ -179,6 +179,9 @@ class Emitter
         case FENCED_CODE:
             this.emitCodeLines(out, block.lines, block.meta, false);
             break;
+        case TABLE:
+            this.emitTableLines(out, block.lines);
+            break;
         case XML:
             this.emitRawLines(out, block.lines);
             break;
@@ -890,6 +893,81 @@ class Emitter
             }
             return MarkToken.NONE;
         }
+    }
+
+    /**
+     * Write a set of lines that define a HTML table into the StringBuilder.
+     *
+     * @param out
+     *            The StringBuilder to write to.
+     * @param lines
+     *            The lines to write.
+     */
+    private void emitTableLines(final StringBuilder out, final Line lines)
+    {
+        final boolean ignoreLeadingPipe = lines.value.charAt(0) == '|';
+        final boolean ignoreTrailingPipe = lines.value.charAt(lines.value.length() - 1) == '|';
+        out.append("<table>\n<thead>\n");
+        emitTableRow(out, lines, true, ignoreLeadingPipe, ignoreTrailingPipe);
+        out.append("\n</thead>\n");
+
+        Line row = lines.next;
+        if (row != null && row.next != null)
+        {
+            row = row.next;  // Skip header separator line.
+            out.append("<tbody>\n");
+            while (row != null)
+            {
+                emitTableRow(out, row, false, ignoreLeadingPipe, ignoreTrailingPipe);
+                out.append('\n');
+                row = row.next;
+            }
+            out.append("</tbody>\n");
+        }
+        out.append("</table>");
+    }
+
+    /**
+     * Writes a single line as a HTML table row into the StringBuilder.
+     *
+     * @param out
+     *            The StringBuilder to write to.
+     * @param line
+     *            The line to write.
+     * @param isHead
+     *            Whether the line is part of thead.
+     * @param ignoreLeadingPipe
+     *            Whether to ignore the leading '|' on the line.
+     * @param ignoreTrailingPipe
+     *            Whether to ignore the trailing '|' on the line.
+     */
+    private void emitTableRow(final StringBuilder out, final Line line, boolean isHead,
+                              boolean ignoreLeadingPipe, boolean ignoreTrailingPipe)
+    {
+        final String open = isHead ? "<th>" : "<td>";
+        final String close = isHead ? "</th>" : "</td>";
+        final int offset = ignoreLeadingPipe && line.value.charAt(0) == '|' ? 1 : 0;
+        final int end = ignoreTrailingPipe && line.value.charAt(line.value.length() - 1) == '|'
+                ? line.value.length() - 1 : line.value.length();
+
+        out.append("<tr>").append(open);
+        StringBuilder cell = new StringBuilder();
+        for (int i = offset; i < end; i++)
+        {
+            final char c = line.value.charAt(i);
+            if (c == '|')
+            {
+                recursiveEmitLine(out, cell.toString(), 0, MarkToken.NONE);
+                cell = new StringBuilder();
+                out.append(close).append(open);
+            }
+            else
+            {
+                cell.append(c);
+            }
+        }
+        recursiveEmitLine(out, cell.toString(), 0, MarkToken.NONE);
+        out.append(close).append("</tr>");
     }
 
     /**

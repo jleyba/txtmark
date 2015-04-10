@@ -210,7 +210,7 @@ class Line
      *
      * @param ch
      *            The char to count.
-     * @return A value > 0 if this line only consists of 'ch' end spaces.
+     * @return A value > 0 if this line only consists of 'ch' and spaces.
      */
     private int countChars(final char ch)
     {
@@ -310,6 +310,33 @@ class Line
                 {
                     return LineType.FENCED_CODE;
                 }
+            }
+
+            if ((this.previous == null || this.prevEmpty) && this.value.indexOf('|') != -1)
+            {
+                if (this.next != null && !this.nextEmpty)
+                {
+                    int count = 0;
+                    for (int i = 0; i < this.next.value.length(); i++)
+                    {
+                        final char ch = this.next.value.charAt(i);
+                        if (ch == '|')
+                        {
+                            count++;
+                            continue;
+                        }
+                        if (ch != ':' && ch != '-' && ch != ' ')
+                        {
+                            count = 0;
+                            break;
+                        }
+                    }
+                    if (count > 0)
+                    {
+                        return LineType.THEAD;
+                    }
+                }
+                return LineType.TROW;
             }
         }
 

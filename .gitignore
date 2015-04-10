@@ -9,4 +9,6 @@ target/
 *.releaseBackup
 release.properties
 *.pyc
+*.iml
+.idea/
 

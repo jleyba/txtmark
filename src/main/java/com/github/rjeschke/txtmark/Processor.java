@@ -792,7 +792,7 @@ public class Processor
      */
     private void recurse(final Block root, final boolean listMode)
     {
-        Block block, list;
+        Block block, list, table;
         Line line = root.lines;
 
         if (listMode)
@@ -980,6 +980,18 @@ public class Processor
                     block = block.next;
                 }
                 list.expandListParagraphs();
+                break;
+            case THEAD:
+                line = line.next;
+                table = root.split(line.previous);
+                table.type = BlockType.TABLE;
+                while (line != null && line.getLineType(this.config) == LineType.TROW)
+                {
+                    Line next = line.next;
+                    root.removeLine(line);
+                    table.appendLine(line);
+                    line = next;
+                }
                 break;
             default:
                 line = line.next;

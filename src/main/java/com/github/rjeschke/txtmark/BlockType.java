@@ -40,6 +40,8 @@ enum BlockType
     PARAGRAPH,
     /** A horizontal ruler. */
     RULER,
+    /** A table. */
+    TABLE,
     /** An unordered list. */
     UNORDERED_LIST,
     /** A XML block. */
